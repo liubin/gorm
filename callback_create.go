@@ -52,6 +52,9 @@ func Create(scope *Scope) {
 		}
 
 		if !scope.HasError() {
+			if reflect.ValueOf(id).Kind() == reflect.Slice {
+				id = string(id.([]uint8))
+			}
 			scope.SetColumn(scope.PrimaryKey(), id)
 		}
 	}

@@ -3,7 +3,7 @@ package gorm
 import (
 	"database/sql"
 
-	"github.com/jinzhu/gorm/dialect"
+	"github.com/8protons/gorm/dialect"
 )
 
 type DB struct {
