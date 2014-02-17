@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 )
