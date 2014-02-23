@@ -3,10 +3,11 @@ package gorm
 import (
 	"errors"
 	"fmt"
-	"github.com/8protons/gorm/dialect"
 	"go/ast"
 	"strings"
 	"time"
+
+	"github.com/dre1080/gorm/dialect"
 
 	"reflect"
 	"regexp"
