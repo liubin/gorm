@@ -48,6 +48,8 @@ func (s *postgres) PrimaryKeyTag(column interface{}, size int) string {
 		return "serial PRIMARY KEY"
 	case int64, uint64:
 		return "bigserial PRIMARY KEY"
+	case string:
+		return "uuid PRIMARY KEY"
 	default:
 		panic("Invalid primary key type")
 	}

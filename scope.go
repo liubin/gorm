@@ -3,7 +3,7 @@ package gorm
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm/dialect"
+	"github.com/8protons/gorm/dialect"
 	"go/ast"
 	"strings"
 	"time"
@@ -244,35 +244,37 @@ func (scope *Scope) Fields() []*Field {
 			field.Tag = fieldStruct.Tag
 			field.SqlTag = scope.sqlTagForField(&field)
 
-			// parse association
-			elem := reflect.Indirect(value)
-			typ := elem.Type()
+			if !field.IsIgnored {
+				// parse association
+				elem := reflect.Indirect(value)
+				typ := elem.Type()
 
-			switch elem.Kind() {
-			case reflect.Slice:
-				typ = typ.Elem()
+				switch elem.Kind() {
+				case reflect.Slice:
+					typ = typ.Elem()
 
-				if _, ok := field.Value.([]byte); !ok {
-					foreignKey := scopeTyp.Name() + "Id"
-					if reflect.New(typ).Elem().FieldByName(foreignKey).IsValid() {
-						field.ForeignKey = foreignKey
-					}
-					field.AfterAssociation = true
-				}
-			case reflect.Struct:
-				if !field.IsTime() && !field.IsScanner() {
-					if scope.HasColumn(field.Name + "Id") {
-						field.ForeignKey = field.Name + "Id"
-						field.BeforeAssociation = true
-					} else {
+					if _, ok := field.Value.([]byte); !ok {
 						foreignKey := scopeTyp.Name() + "Id"
 						if reflect.New(typ).Elem().FieldByName(foreignKey).IsValid() {
 							field.ForeignKey = foreignKey
 						}
 						field.AfterAssociation = true
 					}
+				case reflect.Struct:
+					if !field.IsTime() && !field.IsScanner() {
+						if scope.HasColumn(field.Name + "Id") {
+							field.ForeignKey = field.Name + "Id"
+							field.BeforeAssociation = true
+						} else {
+							foreignKey := scopeTyp.Name() + "Id"
+							if reflect.New(typ).Elem().FieldByName(foreignKey).IsValid() {
+								field.ForeignKey = foreignKey
+							}
+							field.AfterAssociation = true
+						}
+					}
 				}
-			}
+			} // if !field.IsIgnored
 		}
 		fields = append(fields, &field)
 	}
