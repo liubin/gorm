@@ -23,7 +23,7 @@ type IgnoredEmbedStruct struct {
 }
 
 type User struct {
-	Id                 int64 // Id: Primary key
+	ID                 int64 // ID: Primary key
 	Age                int64
 	Name               string             `sql:"size:255"`
 	Birthday           time.Time          // Time
@@ -33,9 +33,9 @@ type User struct {
 	Emails             []Email            // Embedded structs
 	IgnoredEmbedStruct IgnoredEmbedStruct `sql:"-"`
 	BillingAddress     Address            // Embedded struct
-	BillingAddressId   sql.NullInt64      // Embedded struct's foreign key
+	BillingAddressID   sql.NullInt64      // Embedded struct's foreign key
 	ShippingAddress    Address            // Embedded struct
-	ShippingAddressId  int64              // Embedded struct's foreign key
+	ShippingAddressID  int64              // Embedded struct's foreign key
 	When               time.Time
 	CreditCard         CreditCard
 	Latitude           float64
@@ -44,24 +44,24 @@ type User struct {
 }
 
 type CreditCard struct {
-	Id        int8
+	ID        int8
 	Number    string
-	UserId    sql.NullInt64
+	UserID    sql.NullInt64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
 }
 
 type Email struct {
-	Id        int16
-	UserId    int
+	ID        int16
+	UserID    int
 	Email     string `sql:"type:varchar(100); unique"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Address struct {
-	Id        int
+	ID        int
 	Address1  string
 	Address2  string
 	Post      string
@@ -71,7 +71,7 @@ type Address struct {
 }
 
 type Product struct {
-	Id                    int64
+	ID                    int64
 	Code                  string
 	Price                 int64
 	CreatedAt             time.Time
@@ -169,7 +169,7 @@ func TestFirstAndLast(t *testing.T) {
 
 	db.Last(&user3)
 	db.Order("id desc").Find(&user4)
-	if user1.Id != user2.Id || user3.Id != user4.Id {
+	if user1.ID != user2.ID || user3.ID != user4.ID {
 		t.Errorf("First and Last should works correctly")
 	}
 
@@ -209,7 +209,7 @@ func TestCreateAndUpdate(t *testing.T) {
 	}
 
 	db.Save(&user)
-	if user.Id == 0 {
+	if user.ID == 0 {
 		t.Errorf("Should have ID after create")
 	}
 
@@ -222,7 +222,7 @@ func TestCreateAndUpdate(t *testing.T) {
 	}
 
 	var u User
-	db.First(&u, user.Id)
+	db.First(&u, user.ID)
 	if !reflect.DeepEqual(u.PasswordHash, []byte{'f', 'a', 'k', '4'}) {
 		t.Errorf("User's Password should be saved")
 	}
@@ -273,7 +273,7 @@ func TestWhere(t *testing.T) {
 		t.Errorf("Search user with name")
 	}
 
-	if db.Where(user.Id).First(&User{}).Error != nil {
+	if db.Where(user.ID).First(&User{}).Error != nil {
 		t.Errorf("Search user with primary key")
 	}
 
@@ -381,7 +381,7 @@ func TestComplexWhere(t *testing.T) {
 
 	user_ids = []int64{}
 	for _, user := range users {
-		user_ids = append(user_ids, user.Id)
+		user_ids = append(user_ids, user.ID)
 	}
 
 	users = []User{}
@@ -406,17 +406,17 @@ func TestComplexWhere(t *testing.T) {
 func TestSearchWithStruct(t *testing.T) {
 	var user User
 	db.First(&user, &User{Name: "2"})
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search first record with inline struct pointer")
 	}
 
 	db.First(&user, User{Name: "2"})
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search first record with inline struct")
 	}
 
 	db.Where(&User{Name: "2"}).First(&user)
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search first record with where struct")
 	}
 
@@ -427,7 +427,7 @@ func TestSearchWithStruct(t *testing.T) {
 	}
 
 	db.Where(User{Name: "3"}).Find(&users)
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search all records with where struct")
 	}
 }
@@ -435,12 +435,12 @@ func TestSearchWithStruct(t *testing.T) {
 func TestSearchWithMap(t *testing.T) {
 	var user User
 	db.First(&user, map[string]interface{}{"name": "2"})
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search first record with inline map")
 	}
 
 	db.Where(map[string]interface{}{"name": "2"}).First(&user)
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search first record with where map")
 	}
 
@@ -451,7 +451,7 @@ func TestSearchWithMap(t *testing.T) {
 	}
 
 	db.Where(map[string]interface{}{"name": "3"}).Find(&users)
-	if user.Id == 0 || user.Name != "2" {
+	if user.ID == 0 || user.Name != "2" {
 		t.Errorf("Search all records with where map")
 	}
 }
@@ -461,17 +461,17 @@ func TestInitlineCondition(t *testing.T) {
 	db.Where("name = ?", "3").Order("age desc").First(&u1).First(&u2)
 
 	db.Where("name = ?", "3").First(&u3, "age = 22").First(&u4, "age = ?", 24).First(&u5, "age = ?", 26)
-	if !((u5.Id == 0) && (u3.Age == 22 && u3.Name == "3") && (u4.Age == 24 && u4.Name == "3")) {
+	if !((u5.ID == 0) && (u3.Age == 22 && u3.Name == "3") && (u4.Age == 24 && u4.Name == "3")) {
 		t.Errorf("Find first record with inline condition and where")
 	}
 
-	db.First(&u6, u1.Id)
-	if !(u6.Id == u1.Id && u6.Id != 0) {
+	db.First(&u6, u1.ID)
+	if !(u6.ID == u1.ID && u6.ID != 0) {
 		t.Errorf("Find first record with primary key")
 	}
 
-	db.First(&u7, strconv.Itoa(int(u1.Id)))
-	if !(u6.Id == u1.Id && u6.Id != 0) {
+	db.First(&u7, strconv.Itoa(int(u1.ID)))
+	if !(u6.ID == u1.ID && u6.ID != 0) {
 		t.Errorf("Find first record with string primary key")
 	}
 
@@ -490,12 +490,12 @@ func TestInitlineCondition(t *testing.T) {
 func TestSelect(t *testing.T) {
 	var user User
 	db.Where("name = ?", "3").Select("name").Find(&user)
-	if user.Id != 0 {
-		t.Errorf("Should not have ID because only searching age, %+v", user.Id)
+	if user.ID != 0 {
+		t.Errorf("Should not have ID because only searching age, %+v", user.ID)
 	}
 
 	if user.Name != "3" {
-		t.Errorf("Should got Name = 3 when searching with it, %+v", user.Id)
+		t.Errorf("Should got Name = 3 when searching with it, %+v", user.ID)
 	}
 
 	query := db.Where("name = ?", "3").Select("nam;e")
@@ -772,7 +772,7 @@ func TestCallbacksWithErrors(t *testing.T) {
 func TestFillSmallerStructCorrectly(t *testing.T) {
 	type SimpleUser struct {
 		Name      string
-		Id        int64
+		ID        int64
 		UpdatedAt time.Time
 		CreatedAt time.Time
 	}
@@ -780,7 +780,7 @@ func TestFillSmallerStructCorrectly(t *testing.T) {
 	var simple_user SimpleUser
 	db.Table("users").Find(&simple_user)
 
-	if simple_user.Id == 0 || simple_user.Name == "" {
+	if simple_user.ID == 0 || simple_user.Name == "" {
 		t.Errorf("Should fill data correctly even some column missing")
 	}
 }
@@ -875,13 +875,13 @@ func TestUpdate(t *testing.T) {
 		t.Errorf("Record should be updated with update attributes")
 	}
 
-	db.First(&product1, product1.Id)
-	db.First(&product2, product2.Id)
+	db.First(&product1, product1.ID)
+	db.First(&product2, product2.ID)
 	updated_at1 := product1.UpdatedAt
 	updated_at2 := product2.UpdatedAt
 
 	var product3 Product
-	db.First(&product3, product2.Id).Update("code", "456")
+	db.First(&product3, product2.ID).Update("code", "456")
 	if updated_at2.Format(time.RFC3339Nano) != product3.UpdatedAt.Format(time.RFC3339Nano) {
 		t.Errorf("updated_at should not be updated if nothing changed")
 	}
@@ -901,7 +901,7 @@ func TestUpdate(t *testing.T) {
 	db.Table("products").Where("code in (?)", []string{"123"}).Update("code", "789")
 
 	var product4 Product
-	db.First(&product4, product1.Id)
+	db.First(&product4, product1.ID)
 	if updated_at1.Format(time.RFC3339Nano) != product4.UpdatedAt.Format(time.RFC3339Nano) {
 		t.Errorf("updated_at should be updated if something changed")
 	}
@@ -936,13 +936,13 @@ func TestUpdates(t *testing.T) {
 		t.Errorf("Record should be updated also with update attributes")
 	}
 
-	db.First(&product1, product1.Id)
-	db.First(&product2, product2.Id)
+	db.First(&product1, product1.ID)
+	db.First(&product2, product2.ID)
 	updated_at1 := product1.UpdatedAt
 	updated_at2 := product2.UpdatedAt
 
 	var product3 Product
-	db.First(&product3, product2.Id).Updates(Product{Code: "edf", Price: 100})
+	db.First(&product3, product2.ID).Updates(Product{Code: "edf", Price: 100})
 	if product3.Code != "edf" || product3.Price != 100 {
 		t.Errorf("Record should be updated with update attributes")
 	}
@@ -969,7 +969,7 @@ func TestUpdates(t *testing.T) {
 	}
 
 	var product4 Product
-	db.First(&product4, product1.Id)
+	db.First(&product4, product1.ID)
 	if updated_at1.Format(time.RFC3339Nano) != product4.UpdatedAt.Format(time.RFC3339Nano) {
 		t.Errorf("updated_at should be updated if something changed")
 	}
@@ -992,17 +992,17 @@ func TestUpdateColumn(t *testing.T) {
 	}
 
 	var product3 Product
-	db.First(&product3, product1.Id)
+	db.First(&product3, product1.ID)
 	if product3.Code != "update_column 1" || product3.Price != 10 {
 		t.Errorf("product 1 should not be updated")
 	}
 
 	var product4, product5 Product
-	db.First(&product4, product2.Id)
+	db.First(&product4, product2.ID)
 	updated_at1 := product4.UpdatedAt
 
-	db.Model(Product{}).Where(product2.Id).UpdateColumn("code", "update_column_new")
-	db.First(&product5, product2.Id)
+	db.Model(Product{}).Where(product2.ID).UpdateColumn("code", "update_column_new")
+	db.First(&product5, product2.ID)
 	if updated_at1.Format(time.RFC3339Nano) != product5.UpdatedAt.Format(time.RFC3339Nano) {
 		t.Errorf("updated_at should not be updated with update column")
 	}
@@ -1010,7 +1010,7 @@ func TestUpdateColumn(t *testing.T) {
 
 func TestSoftDelete(t *testing.T) {
 	type Order struct {
-		Id        int64
+		ID        int64
 		Amount    int64
 		DeletedAt time.Time
 	}
@@ -1041,43 +1041,43 @@ func TestSoftDelete(t *testing.T) {
 func TestFindOrInitialize(t *testing.T) {
 	var user1, user2, user3, user4, user5, user6 User
 	db.Where(&User{Name: "find or init", Age: 33}).FirstOrInit(&user1)
-	if user1.Name != "find or init" || user1.Id != 0 || user1.Age != 33 {
+	if user1.Name != "find or init" || user1.ID != 0 || user1.Age != 33 {
 		t.Errorf("user should be initialized with search value")
 	}
 
 	db.Where(User{Name: "find or init", Age: 33}).FirstOrInit(&user2)
-	if user2.Name != "find or init" || user2.Id != 0 || user2.Age != 33 {
+	if user2.Name != "find or init" || user2.ID != 0 || user2.Age != 33 {
 		t.Errorf("user should be initialized with search value")
 	}
 
 	db.FirstOrInit(&user3, map[string]interface{}{"name": "find or init 2"})
-	if user3.Name != "find or init 2" || user3.Id != 0 {
+	if user3.Name != "find or init 2" || user3.ID != 0 {
 		t.Errorf("user should be initialized with inline search value")
 	}
 
 	db.Where(&User{Name: "find or init"}).Attrs(User{Age: 44}).FirstOrInit(&user4)
-	if user4.Name != "find or init" || user4.Id != 0 || user4.Age != 44 {
+	if user4.Name != "find or init" || user4.ID != 0 || user4.Age != 44 {
 		t.Errorf("user should be initialized with search value and attrs")
 	}
 
 	db.Where(&User{Name: "find or init"}).Assign("age", 44).FirstOrInit(&user4)
-	if user4.Name != "find or init" || user4.Id != 0 || user4.Age != 44 {
+	if user4.Name != "find or init" || user4.ID != 0 || user4.Age != 44 {
 		t.Errorf("user should be initialized with search value and assign attrs")
 	}
 
 	db.Save(&User{Name: "find or init", Age: 33})
 	db.Where(&User{Name: "find or init"}).Attrs("age", 44).FirstOrInit(&user5)
-	if user5.Name != "find or init" || user5.Id == 0 || user5.Age != 33 {
+	if user5.Name != "find or init" || user5.ID == 0 || user5.Age != 33 {
 		t.Errorf("user should be found and not initialized by Attrs")
 	}
 
 	db.Where(&User{Name: "find or init", Age: 33}).FirstOrInit(&user6)
-	if user6.Name != "find or init" || user6.Id == 0 || user6.Age != 33 {
+	if user6.Name != "find or init" || user6.ID == 0 || user6.Age != 33 {
 		t.Errorf("user should be found with FirstOrInit")
 	}
 
 	db.Where(&User{Name: "find or init"}).Assign(User{Age: 44}).FirstOrInit(&user6)
-	if user6.Name != "find or init" || user6.Id == 0 || user6.Age != 44 {
+	if user6.Name != "find or init" || user6.ID == 0 || user6.Age != 44 {
 		t.Errorf("user should be found and updated with assigned attrs")
 	}
 }
@@ -1085,22 +1085,22 @@ func TestFindOrInitialize(t *testing.T) {
 func TestFindOrCreate(t *testing.T) {
 	var user1, user2, user3, user4, user5, user6, user7, user8 User
 	db.Where(&User{Name: "find or create", Age: 33}).FirstOrCreate(&user1)
-	if user1.Name != "find or create" || user1.Id == 0 || user1.Age != 33 {
+	if user1.Name != "find or create" || user1.ID == 0 || user1.Age != 33 {
 		t.Errorf("user should be created with search value")
 	}
 
 	db.Where(&User{Name: "find or create", Age: 33}).FirstOrCreate(&user2)
-	if user1.Id != user2.Id || user2.Name != "find or create" || user2.Id == 0 || user2.Age != 33 {
+	if user1.ID != user2.ID || user2.Name != "find or create" || user2.ID == 0 || user2.Age != 33 {
 		t.Errorf("user should be created with search value")
 	}
 
 	db.FirstOrCreate(&user3, map[string]interface{}{"name": "find or create 2"})
-	if user3.Name != "find or create 2" || user3.Id == 0 {
+	if user3.Name != "find or create 2" || user3.ID == 0 {
 		t.Errorf("user should be created with inline search value")
 	}
 
 	db.Where(&User{Name: "find or create 3"}).Attrs("age", 44).FirstOrCreate(&user4)
-	if user4.Name != "find or create 3" || user4.Id == 0 || user4.Age != 44 {
+	if user4.Name != "find or create 3" || user4.ID == 0 || user4.Age != 44 {
 		t.Errorf("user should be created with search value and attrs")
 	}
 
@@ -1111,22 +1111,22 @@ func TestFindOrCreate(t *testing.T) {
 	}
 
 	db.Where(&User{Name: "find or create 4"}).Assign(User{Age: 44}).FirstOrCreate(&user4)
-	if user4.Name != "find or create 4" || user4.Id == 0 || user4.Age != 44 {
+	if user4.Name != "find or create 4" || user4.ID == 0 || user4.Age != 44 {
 		t.Errorf("user should be created with search value and assigned attrs")
 	}
 
 	db.Where(&User{Name: "find or create"}).Attrs("age", 44).FirstOrInit(&user5)
-	if user5.Name != "find or create" || user5.Id == 0 || user5.Age != 33 {
+	if user5.Name != "find or create" || user5.ID == 0 || user5.Age != 33 {
 		t.Errorf("user should be found and not initialized by Attrs")
 	}
 
 	db.Where(&User{Name: "find or create"}).Assign(User{Age: 44}).FirstOrCreate(&user6)
-	if user6.Name != "find or create" || user6.Id == 0 || user6.Age != 44 {
+	if user6.Name != "find or create" || user6.ID == 0 || user6.Age != 44 {
 		t.Errorf("user should be found and updated with assigned attrs")
 	}
 
 	db.Where(&User{Name: "find or create"}).Find(&user7)
-	if user7.Name != "find or create" || user7.Id == 0 || user7.Age != 44 {
+	if user7.Name != "find or create" || user7.ID == 0 || user7.Age != 44 {
 		t.Errorf("user should be found and updated with assigned attrs")
 	}
 
@@ -1144,7 +1144,7 @@ func TestNot(t *testing.T) {
 	var users1, users2, users3, users4, users5, users6, users7, users8 []User
 	db.Find(&users1)
 
-	db.Not(users1[0].Id).Find(&users2)
+	db.Not(users1[0].ID).Find(&users2)
 
 	if len(users1)-len(users2) != 1 {
 		t.Errorf("Should ignore the first users with Not")
@@ -1199,14 +1199,14 @@ func TestNot(t *testing.T) {
 }
 
 type Category struct {
-	Id   int64
+	ID   int64
 	Name string
 }
 
 type Post struct {
-	Id             int64
-	CategoryId     sql.NullInt64
-	MainCategoryId int64
+	ID             int64
+	CategoryID     sql.NullInt64
+	MainCategoryID int64
 	Title          string
 	Body           string
 	Comments       []Comment
@@ -1215,8 +1215,8 @@ type Post struct {
 }
 
 type Comment struct {
-	Id      int64
-	PostId  int64
+	ID      int64
+	PostID  int64
 	Content string
 	Post    Post
 }
@@ -1247,16 +1247,16 @@ func TestSubStruct(t *testing.T) {
 	}
 
 	var p Post
-	db.First(&p, post.Id)
+	db.First(&p, post.ID)
 
-	if post.CategoryId.Int64 == 0 || p.CategoryId.Int64 == 0 || post.MainCategoryId == 0 || p.MainCategoryId == 0 {
-		t.Errorf("Category Id should exist")
+	if post.CategoryID.Int64 == 0 || p.CategoryID.Int64 == 0 || post.MainCategoryID == 0 || p.MainCategoryID == 0 {
+		t.Errorf("Category ID should exist")
 	}
 
 	if db.First(&Comment{}, "content = ?", "Comment 1").Error != nil {
 		t.Errorf("Comment 1 should be saved")
 	}
-	if post.Comments[0].PostId == 0 {
+	if post.Comments[0].PostID == 0 {
 		t.Errorf("Comment Should have post id")
 	}
 
@@ -1265,7 +1265,7 @@ func TestSubStruct(t *testing.T) {
 		t.Errorf("Comment 2 should be saved")
 	}
 
-	if comment.PostId == 0 {
+	if comment.PostID == 0 {
 		t.Errorf("Comment 2 Should have post id")
 	}
 
@@ -1291,15 +1291,15 @@ func TestRelated(t *testing.T) {
 
 	db.Save(&user)
 
-	if user.CreditCard.Id == 0 {
+	if user.CreditCard.ID == 0 {
 		t.Errorf("After user save, credit card should have id")
 	}
 
-	if user.BillingAddress.Id == 0 {
+	if user.BillingAddress.ID == 0 {
 		t.Errorf("After user save, billing address should have id")
 	}
 
-	if user.Emails[0].Id == 0 {
+	if user.Emails[0].ID == 0 {
 		t.Errorf("After user save, billing address should have id")
 	}
 
@@ -1315,20 +1315,20 @@ func TestRelated(t *testing.T) {
 	}
 
 	var address1 Address
-	db.Model(&user).Related(&address1, "BillingAddressId")
+	db.Model(&user).Related(&address1, "BillingAddressID")
 	if address1.Address1 != "Billing Address - Address 1" {
 		t.Errorf("Should get billing address from user correctly")
 	}
 
 	user1 = User{}
-	db.Model(&address1).Related(&user1, "BillingAddressId")
+	db.Model(&address1).Related(&user1, "BillingAddressID")
 	if db.NewRecord(user1) {
 		t.Errorf("Should get user from address correctly")
 	}
 
 	var user2 User
 	db.Model(&emails[0]).Related(&user2)
-	if user2.Id != user.Id || user2.Name != user.Name {
+	if user2.ID != user.ID || user2.Name != user.Name {
 		t.Errorf("Should get user from email correctly")
 	}
 
@@ -1336,7 +1336,7 @@ func TestRelated(t *testing.T) {
 	var user3 User
 	db.First(&credit_card, "number = ?", "1234567890")
 	db.Model(&credit_card).Related(&user3)
-	if user3.Id != user.Id || user3.Name != user.Name {
+	if user3.ID != user.ID || user3.Name != user.Name {
 		t.Errorf("Should get user from credit card correctly")
 	}
 
@@ -1408,8 +1408,8 @@ func TestTableName(t *testing.T) {
 }
 
 type BigEmail struct {
-	Id           int64
-	UserId       int64
+	ID           int64
+	UserID       int64
 	Email        string
 	UserAgent    string
 	RegisteredAt time.Time
@@ -1462,7 +1462,7 @@ func (nt NullTime) Value() (driver.Value, error) {
 }
 
 type NullValue struct {
-	Id      int64
+	ID      int64
 	Name    sql.NullString `sql:"not null"`
 	Age     sql.NullInt64
 	Male    sql.NullBool
@@ -1731,7 +1731,7 @@ func BenchmarkRawSql(b *testing.B) {
 		e := strconv.Itoa(x) + "benchmark@example.org"
 		email := BigEmail{Email: e, UserAgent: "pc", RegisteredAt: time.Now()}
 		// Insert
-		db.QueryRow(insert_sql, email.UserId, email.Email, email.UserAgent, email.RegisteredAt, time.Now(), time.Now()).Scan(&id)
+		db.QueryRow(insert_sql, email.UserID, email.Email, email.UserAgent, email.RegisteredAt, time.Now(), time.Now()).Scan(&id)
 		// Query
 		rows, _ := db.Query(query_sql, email.Email)
 		rows.Close()

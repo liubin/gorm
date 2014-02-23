@@ -30,7 +30,7 @@ go get github.com/jinzhu/gorm
 * Table name is the plural of struct name's snake case.
   Disable pluralization with `db.SingularTable(true)`, or [specify your table name](#specify-table-name)
 * Column name is the snake case of field's name.
-* Use `Id int64` field as primary key.
+* Use `ID int64` field as primary key.
 * Use tag `sql` to change field's property, change the tag name with `db.SetTagIdentifier(new_name)`.
 * Use `CreatedAt` to store record's created time if field exists.
 * Use `UpdatedAt` to store record's updated time if field exists.
@@ -56,7 +56,7 @@ import (
 )
 
 type User struct {
-    Id           int64
+    ID           int64
     Birthday     time.Time
     Age          int64
     Name         string  `sql:"size:255"`
@@ -66,21 +66,21 @@ type User struct {
 
     Emails            []Email         // Embedded structs
     BillingAddress    Address         // Embedded struct
-    BillingAddressId  sql.NullInt64   // BillingAddress's foreign key
+    BillingAddressID  sql.NullInt64   // BillingAddress's foreign key
     ShippingAddress   Address         // Another Embedded struct with same type
-    ShippingAddressId int64           // ShippingAddress's foreign key
+    ShippingAddressID int64           // ShippingAddress's foreign key
     IgnoreMe          int64 `sql:"-"` // Ignore this field
 }
 
 type Email struct {
-    Id         int64
-    UserId     int64   // Foreign key for User
+    ID         int64
+    UserID     int64   // Foreign key for User
     Email      string  `sql:"type:varchar(100);"` // Set this field's type
     Subscribed bool
 }
 
 type Address struct {
-    Id       int64
+    ID       int64
     Address1 string         `sql:"not null;unique"` // Set this field as not nullable and unique in database
     Address2 string         `sql:"type:varchar(100);unique"`
     Post     sql.NullString `sql:not null`
@@ -193,7 +193,7 @@ db.Save(&user)
 
 ### NewRecord
 
-Returns true if object hasn’t been saved yet (`Id` is blank)
+Returns true if object hasn’t been saved yet (`ID` is blank)
 
 ```go
 user := User{Name: "jinzhu", Age: 18, Birthday: time.Now()}
@@ -361,13 +361,13 @@ db.Where("name = 'jinzhu'").Or(map[string]interface{}{"name": "jinzhu 2"}).Find(
 db.Model(&user).Related(&emails)
 //// SELECT * FROM emails WHERE user_id = 111;
 
-// Find user's billing address with specified foreign key 'BillingAddressId'
-db.Model(&user).Related(&address1, "BillingAddressId")
-//// SELECT * FROM addresses WHERE id = 123; // 123 is user's BillingAddressId
+// Find user's billing address with specified foreign key 'BillingAddressID'
+db.Model(&user).Related(&address1, "BillingAddressID")
+//// SELECT * FROM addresses WHERE id = 123; // 123 is user's BillingAddressID
 
 // Find user with guessed primary key value from email
 db.Model(&email).Related(&user)
-//// SELECT * FROM users WHERE id = 111; // 111 is email's UserId
+//// SELECT * FROM users WHERE id = 111; // 111 is email's UserID
 ```
 
 ### Query Chains
@@ -489,10 +489,10 @@ db.FirstOrInit(&user, User{Name: "non_existing"})
 //// User{Name: "non_existing"}
 
 db.Where(User{Name: "Jinzhu"}).FirstOrInit(&user)
-//// User{Id: 111, Name: "Jinzhu", Age: 20}
+//// User{ID: 111, Name: "Jinzhu", Age: 20}
 
 db.FirstOrInit(&user, map[string]interface{}{"name": "jinzhu"})
-//// User{Id: 111, Name: "Jinzhu", Age: 20}
+//// User{ID: 111, Name: "Jinzhu", Age: 20}
 ```
 
 ### FirstOrInit With Attrs
@@ -510,7 +510,7 @@ db.Where(User{Name: "noexisting_user"}).Attrs("age", 20).FirstOrInit(&user)
 // If a record found, Attrs would be ignored
 db.Where(User{Name: "Jinzhu"}).Attrs(User{Age: 30}).FirstOrInit(&user)
 //// SELECT * FROM USERS WHERE name = jinzhu';
-//// User{Id: 111, Name: "Jinzhu", Age: 20}
+//// User{ID: 111, Name: "Jinzhu", Age: 20}
 ```
 
 ### FirstOrInit With Assign
@@ -522,7 +522,7 @@ db.Where(User{Name: "non_existing"}).Assign(User{Age: 20}).FirstOrInit(&user)
 //// User{Name: "non_existing", Age: 20}
 
 db.Where(User{Name: "Jinzhu"}).Assign(User{Age: 30}).FirstOrInit(&user)
-//// User{Id: 111, Name: "Jinzhu", Age: 30}
+//// User{ID: 111, Name: "Jinzhu", Age: 30}
 ```
 
 ## FirstOrCreate
@@ -531,13 +531,13 @@ Try to get the first record, if failed, will initialize the struct with the sear
 
 ```go
 db.FirstOrCreate(&user, User{Name: "non_existing"})
-//// User{Id: 112, Name: "non_existing"}
+//// User{ID: 112, Name: "non_existing"}
 
 db.Where(User{Name: "Jinzhu"}).FirstOrCreate(&user)
-//// User{Id: 111, Name: "Jinzhu"}
+//// User{ID: 111, Name: "Jinzhu"}
 
 db.FirstOrCreate(&user, map[string]interface{}{"name": "jinzhu", "age": 30})
-//// user -> User{Id: 111, Name: "jinzhu", Age: 20}
+//// user -> User{ID: 111, Name: "jinzhu", Age: 20}
 ```
 
 ### FirstOrCreate With Attrs
@@ -547,10 +547,10 @@ Ignore Attrs's arguments when searching, but use them to initialize the struct i
 ```go
 db.Where(User{Name: "non_existing"}).Attrs(User{Age: 20}).FirstOrCreate(&user)
 //// SELECT * FROM users WHERE name = 'non_existing';
-//// User{Id: 112, Name: "non_existing", Age: 20}
+//// User{ID: 112, Name: "non_existing", Age: 20}
 
 db.Where(User{Name: "jinzhu"}).Attrs(User{Age: 30}).FirstOrCreate(&user)
-//// User{Id: 111, Name: "jinzhu", Age: 20}
+//// User{ID: 111, Name: "jinzhu", Age: 20}
 ```
 
 ### FirstOrCreate With Assign
@@ -559,12 +559,12 @@ Ignore Assign's arguments when searching, but use them to fill the struct regard
 
 ```go
 db.Where(User{Name: "non_existing"}).Assign(User{Age: 20}).FirstOrCreate(&user)
-//// user -> User{Id: 112, Name: "non_existing", Age: 20}
+//// user -> User{ID: 112, Name: "non_existing", Age: 20}
 
 db.Where(User{Name: "jinzhu"}).Assign(User{Age: 30}).FirstOrCreate(&user)
 //// SELECT * FROM users WHERE name = 'jinzhu';
 //// UPDATE users SET age=30 WHERE id = 111;
-//// User{Id: 111, Name: "jinzhu", Age: 30}
+//// User{ID: 111, Name: "jinzhu", Age: 30}
 ```
 
 ## Select
@@ -728,7 +728,7 @@ func (u *User) BeforeUpdate() (err error) {
 
 // Rollback the insertion if there are more than 1000 users (hypothetical example)
 func (u *User) AfterCreate() (err error) {
-    if (u.Id > 1000) { // Just as an example, don't use Id to count users!
+    if (u.ID > 1000) { // Just as an example, don't use ID to count users!
         err = errors.New("Only 1000 users allowed!")
     }
     return

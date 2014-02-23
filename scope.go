@@ -255,7 +255,7 @@ func (scope *Scope) Fields() []*Field {
 					typ = typ.Elem()
 
 					if _, ok := field.Value.([]byte); !ok {
-						foreignKey := scopeTyp.Name() + "Id"
+						foreignKey := scopeTyp.Name() + "ID"
 						if reflect.New(typ).Elem().FieldByName(foreignKey).IsValid() {
 							field.ForeignKey = foreignKey
 						}
@@ -263,11 +263,11 @@ func (scope *Scope) Fields() []*Field {
 					}
 				case reflect.Struct:
 					if !field.IsTime() && !field.IsScanner() {
-						if scope.HasColumn(field.Name + "Id") {
-							field.ForeignKey = field.Name + "Id"
+						if scope.HasColumn(field.Name + "ID") {
+							field.ForeignKey = field.Name + "ID"
 							field.BeforeAssociation = true
 						} else {
-							foreignKey := scopeTyp.Name() + "Id"
+							foreignKey := scopeTyp.Name() + "ID"
 							if reflect.New(typ).Elem().FieldByName(foreignKey).IsValid() {
 								field.ForeignKey = foreignKey
 							}
