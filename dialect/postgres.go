@@ -37,6 +37,8 @@ func (d *postgres) SqlTag(column interface{}, size int) string {
 		} else {
 			return "text"
 		}
+	case map[string]sql.NullString:
+		return "hstore"
 	default:
 		panic("Invalid sql type for postgres")
 	}
