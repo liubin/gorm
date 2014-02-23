@@ -13,6 +13,35 @@ import (
 	"sync"
 )
 
+// commonInitialisms is a set of common initialisms.
+// Only add entries that are highly unlikely to be non-initialisms.
+// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
+var commonInitialisms = map[string]bool{
+	"API":   true,
+	"ASCII": true,
+	"CPU":   true,
+	"CSS":   true,
+	"DNS":   true,
+	"EOF":   true,
+	"HTML":  true,
+	"HTTP":  true,
+	"ID":    true,
+	"IP":    true,
+	"JSON":  true,
+	"LHS":   true,
+	"QPS":   true,
+	"RAM":   true,
+	"RHS":   true,
+	"RPC":   true,
+	"SLA":   true,
+	"TTL":   true,
+	"UI":    true,
+	"UID":   true,
+	"URL":   true,
+	"UTF8":  true,
+	"XML":   true,
+}
+
 type safeMap struct {
 	m map[string]string
 	l *sync.RWMutex
@@ -43,8 +72,9 @@ func toSnake(u string) string {
 	}
 
 	buf := bytes.NewBufferString("")
+
 	for i, v := range u {
-		if i > 0 && v >= 'A' && v <= 'Z' {
+		if i > 0 && v >= 'A' && v <= 'Z' && u[i-1] > 'Z' {
 			buf.WriteRune('_')
 		}
 		buf.WriteRune(v)
@@ -63,8 +93,12 @@ func snakeToUpperCamel(s string) string {
 	buf := bytes.NewBufferString("")
 	for _, v := range strings.Split(s, "_") {
 		if len(v) > 0 {
-			buf.WriteString(strings.ToUpper(v[:1]))
-			buf.WriteString(v[1:])
+			if u := strings.ToUpper(v); commonInitialisms[u] {
+				buf.WriteString(u)
+			} else {
+				buf.WriteString(strings.ToUpper(v[:1]))
+				buf.WriteString(v[1:])
+			}
 		}
 	}
 
