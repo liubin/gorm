@@ -397,7 +397,7 @@ func (scope *Scope) typeName() string {
 func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 	toScope := scope.New(value)
 
-	for _, foreignKey := range append(foreignKeys, toScope.typeName()+"Id", scope.typeName()+"Id") {
+	for _, foreignKey := range append(foreignKeys, toScope.typeName()+"ID", scope.typeName()+"ID") {
 		if foreignValue, ok := scope.FieldByName(foreignKey); ok {
 			return toScope.inlineCondition(foreignValue).callCallbacks(scope.db.parent.callback.queries)
 		} else if toScope.HasColumn(foreignKey) {
